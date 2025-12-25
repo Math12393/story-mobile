@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- CRITICAL FOR MOBILE: This viewport tag ensures proper scaling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Secret Agent Adventure | Mobile Story</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* === MOBILE-FIRST RESET & BASE STYLES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on iOS */
+            -webkit-text-size-adjust: 100%; /* Prevents text zoom on iOS */
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0c2461, #1e3799);
+            color: white;
+            min-height: 100vh;
+            touch-action: manipulation; /* Improves touch responsiveness */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); /* For iPhone notches */
+        }
+
+        /* === MAIN LAYOUT === */
+        .container {
+            max-width: 100%;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 6vw, 2.5rem); /* Fluid typography */
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FFD32A, #FF9F1A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #a4b0be;
+            line-height: 1.5;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* === STORY & SCENES === */
+        .story-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .scene {
+            display: none;
+            opacity: 0;
+            flex-direction: column;
+            flex-grow: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .scene.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .scene-title {
+            font-size: 1.7rem;
+            color: #FFD32A;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .text-box {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #FF9F1A;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            flex-shrink: 0;
+        }
+
+        /* === ANIMATION AREA (Key Feature) === */
+        .animation-area {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 250px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            background: rgba(10, 25, 47, 0.7);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* === CHARACTER & ENVIRONMENT ANIMATIONS === */
+        /* Agent Character */
+        .agent {
+            position: absolute;
+            bottom: 30px;
+            left: 15%;
+            width: 70px;
+            height: 120px;
+            z-index: 20;
+            transition: left 2s ease;
+        }
+
+        .agent-body {
+            width: 40px;
+            height: 60px;
+            background: #3742fa;
+            position: absolute;
+            bottom: 0;
+            left: 15px;
+            border-radius: 18px 18px 0 0;
+            animation: agentFloat 3s infinite ease-in-out;
+        }
+
+        .agent-head {
+            width: 35px;
+            height: 35px;
+            background: #ffccbc;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 60px;
+            left: 17px;
+        }
+
+        .agent-bag {
+            width: 20px;
+            height: 35px;
+            background: #ff6b81;
+            position: absolute;
+            bottom: 5px;
+            left: 48px;
+            border-radius: 5px;
+            animation: bagSwing 2.5s infinite ease-in-out;
+        }
+
+        /* Safe Object */
+        .safe {
+            width: 100px;
+            height: 80px;
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            position: absolute;
+            bottom: 30px;
+            right: 15%;
+            border-radius: 10px;
+            z-index: 15;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            animation: safeGlow 4s infinite alternate;
+        }
+
+        .safe-door {
+            width: 60px;
+            height: 50px;
+            background: #5D4037;
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            border-radius: 8px;
+            border: 3px solid #FFD700;
+        }
+
+        /* Sun */
+        .sun {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #FFD700, #FF8C00);
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+            right: 20%;
+            animation: sunPulse 6s infinite ease-in-out, sunRotate 30s infinite linear;
+            box-shadow: 0 0 40px #FFA500;
+        }
+
+        /* Moving Clouds */
+        .cloud {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 50px;
+            position: absolute;
+            opacity: 0.9;
+        }
+
+        .cloud-1 {
+            width: 100px;
+            top: 20%;
+            left: -120px; /* Start off-screen */
+            animation: cloudMove 25s infinite linear;
+        }
+
+        .cloud-2 {
+            width: 130px;
+            top: 15%;
+            left: -150px;
+            animation: cloudMove 30s infinite linear 5s; /* Delayed start */
+        }
+
+        /* === KEYFRAME ANIMATIONS === */
+        @keyframes agentFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes bagSwing {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        @keyframes safeGlow {
+            0% { box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 0 10px rgba(255, 215, 0, 0.3); }
+            100% { box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 0 25px rgba(255, 215, 0, 0.8); }
+        }
+
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        @keyframes sunRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes cloudMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw + 200px)); } /* Move across and off-screen */
+        }
+
+        /* === CONTROLS === */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            font-size: 1rem;
+            background: linear-gradient(45deg, #3742fa, #7158e2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 130px;
+            touch-action: manipulation;
+            transition: transform 0.1s, opacity 0.2s;
+            user-select: none;
+            box-shadow: 0 5px 15px rgba(55, 66, 250, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            background: #57606f;
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* === PROGRESS INDICATORS === */
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3742fa, #FFD32A);
+            width: 20%;
+            transition: width 0.4s ease;
+            border-radius: 4px;
+        }
+
+        .scene-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-shrink: 0;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: #FFD32A;
+            transform: scale(1.2);
+            box-shadow: 0 0 8px #FFD32A;
+        }
+
+        /* === GIF SURPRISE OVERLAY (100% Mobile Compatible) === */
+        .gif-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.97);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .gif-container {
+            width: 100%;
+            max-width: 500px;
+            background: #111;
+            border-radius: 20px;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.6s ease;
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.25);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .gif-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .gif-title {
+            font-size: 1.5rem;
+            color: #FFD32A;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .gif-wrapper {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            text-align: center;
+        }
+
+        /* THE GIF - Will autoplay perfectly on all devices */
+        #rickrollGif {
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .gif-message {
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 1px solid #333;
+        }
+
+        /* === FOOTER === */
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #a4b0be;
+            font-size: 0.85rem;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        /* === RESPONSIVE ADJUSTMENTS === */
+        @media (max-width: 480px) {
+            .text-box { font-size: 1rem; padding: 18px; }
+            .btn { min-width: 110px; padding: 14px 20px; }
+            .scene-title { font-size: 1.5rem; }
+            .animation-area { min-height: 220px; }
+        }
+
+        @media (min-width: 768px) {
+            .container { max-width: 700px; margin: 0 auto; }
+            .animation-area { min-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-user-secret"></i> Operation: Midnight</h1>
+            <p class="subtitle">A mobile-optimized interactive story. Help Agent complete the mission. The final message is classified.</p>
+        </header>
+
+        <div class="story-card">
+            <!-- Scene 1 -->
+            <div class="scene active" id="scene1">
+                <h2 class="scene-title">The Briefing</h2>
+                <div class="text-box">
+                    <p><i class="fas fa-file-contract"></i> "Agent, your mission is to retrieve the encrypted drive from the old safe house. Intelligence suggests it contains vital information. You must move quickly and quietly."</p>
+                    <p style="margin-top: 15px; color: #FFD32A; font-size: 0.95rem;"><i class="fas fa-info-circle"></i> Swipe or use the buttons to navigate.</p>
+                </div>
+                <div class="animation-area">
+                    <div class="sun"></div>
+                    <div class="cloud cloud-1"></div>
+                    <div class="cloud cloud-2"></div>
+                    <div class="agent">
+                        <div class="agent-head"></div>
+                        <div class="agent-body"></div>
+                        <div class="agent-bag"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene 2 -->
+            <div class="scene" id="scene2">
+                <h2 class="scene-title">Stealth Approach</h2>
+                <div class="text-box">
+                    <p><i class="fas fa-user-ninja"></i> Under the cover of twilight, you approach the safe house. The neighborhood is silent. You use the rooftops, avoiding the streetlights and security cameras below.</p>
+                </div>
+                <div class="animation-area">
+                    <div class="sun" style="right: 10%; top: 40px;"></div>
+                    <div class="cloud cloud-1"></div>
+                    <div class="cloud cloud-2"></div>
+                    <div class="agent" style="left: 30%;">
+                        <div class="agent-head"></div>
+                        <div class="agent-body"></div>
+                        <div class="agent-bag"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene 3 -->
+            <div class="scene" id="scene3">
+                <h2 class="scene-title">Inside the Safe House</h2>
+                <div class="text-box">
+                    <p><i class="fas fa-door-closed"></i> You pick the lock on the back entrance. Inside, the air is stale and dusty. A single desk sits in the middle of the room, and against the far wall is the old safe mentioned in the brief.</p>
+                </div>
+                <div class="animation-area">
+                    <div class="safe">
+                        <div class="safe-door"></div>
+                    </div>
+                    <div class="agent" style="left: 50%;">
+                        <div class="agent-head"></div>
+                        <div class="agent-body"></div>
+                        <div class="agent-bag"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene 4 -->
+            <div class="scene" id="scene4">
+                <h2 class="scene-title">Cracking the Safe</h2>
+                <div class="text-box">
+                    <p><i class="fas fa-cog"></i> The combination is more complex than expected. After several tense minutes, you hear a satisfying *click*. The heavy door swings open, revealing a single, sleek data drive inside.</p>
+                </div>
+                <div class="animation-area">
+                    <div class="safe" style="animation: safeGlow 1.5s infinite alternate;">
+                        <div class="safe-door" style="border-color: #32ff7a;"></div>
+                    </div>
+                    <div class="agent" style="left: 70%;">
+                        <div class="agent-head"></div>
+                        <div class="agent-body"></div>
+                        <div class="agent-bag"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene 5 -->
+            <div class="scene" id="scene5">
+                <h2 class="scene-title">The Decrypted Message</h2>
+                <div class="text-box">
+                    <p><i class="fas fa-database"></i> You plug the drive into your portable decoder. "Decryption complete. Primary file is a high-priority visual transmission. Playing now..." The screen flickers as the file loads.</p>
+                </div>
+                <div class="animation-area">
+                    <div class="safe" style="right: 25%; bottom: 50px; animation: none; box-shadow: 0 0 30px #32ff7a;">
+                        <div class="safe-door" style="border-color: #32ff7a; transform: rotate(-15deg); transform-origin: left;"></div>
+                    </div>
+                    <div class="agent" style="left: 15%;">
+                        <div class="agent-head"></div>
+                        <div class="agent-body"></div>
+                        <div class="agent-bag"></div>
+                    </div>
+                    <div style="position: absolute; top: 40%; left: 50%; transform: translateX(-50%); color: #32ff7a; font-size: 1.5rem; text-shadow: 0 0 10px #32ff7a; animation: sunPulse 1s infinite;">
+                        <i class="fas fa-play-circle"></i> DECRYPTING...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="scene-indicator">
+            <div class="indicator active" data-scene="1"></div>
+            <div class="indicator" data-scene="2"></div>
+            <div class="indicator" data-scene="3"></div>
+            <div class="indicator" data-scene="4"></div>
+            <div class="indicator" data-scene="5"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="prevBtn" disabled>
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button class="btn" id="nextBtn">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="btn" id="autoBtn">
+                <i class="fas fa-play"></i> Auto-Story
+            </button>
+        </div>
+
+        <footer>
+            <p>Interactive Mobile Story • Complete the mission for the classified message</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; color: #747d8c;">
+                <i class="fas fa-mobile-alt"></i> 100% iOS & Android Supported
+            </p>
+        </footer>
+    </div>
+
+    <!-- === THE SURPRISE GIF OVERLAY === -->
+    <div class="gif-overlay" id="gifOverlay">
+        <div class="gif-container" id="gifContainer">
+            <div class="gif-header">
+                <div class="gif-title">CLASSIFIED TRANSMISSION</div>
+                <button class="close-btn" id="closeGif">&times;</button>
+            </div>
+            <div class="gif-wrapper">
+                <!-- YOUR GIF - Will work perfectly on all mobile devices -->
+                <img id="rickrollGif"
+                     src="https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif"
+                     alt="Rickroll Surprise">
+            </div>
+            <div class="gif-message">
+                <p><i class="fas fa-broadcast-tower"></i> Transmission Intercepted!</p>
+                <p style="font-size: 1rem; margin-top: 10px; color: #FFD32A;">
+                    You've been Rickrolled!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === DETECT MOBILE PLATFORM (for logging) ===
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(navigator.userAgent);
+        console.log(`Mobile Story Loaded: iOS=${isIOS}, Android=${isAndroid}`);
+
+        // === DOM ELEMENTS ===
+        const scenes = document.querySelectorAll('.scene');
+        const indicators = document.querySelectorAll('.indicator');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const autoBtn = document.getElementById('autoBtn');
+        const progressBar = document.getElementById('progressBar');
+        const gifOverlay = document.getElementById('gifOverlay');
+        const gifContainer = document.getElementById('gifContainer');
+        const closeGifBtn = document.getElementById('closeGif');
+        const rickrollGif = document.getElementById('rickrollGif');
+
+        // === STATE VARIABLES ===
+        let currentScene = 0;
+        let autoPlayInterval = null;
+        let isAutoPlaying = false;
+
+        // === SCENE MANAGEMENT ===
+        function updateScene() {
+            // Hide all scenes, show active
+            scenes.forEach(scene => scene.classList.remove('active'));
+            scenes[currentScene].classList.add('active');
+
+            // Update progress indicators
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === currentScene);
+            });
+
+            // Update buttons
+            prevBtn.disabled = currentScene === 0;
+            if (currentScene === scenes.length - 1) {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = '<i class="fas fa-lock"></i> Classified';
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
+            }
+
+            // Update progress bar
+            const progress = ((currentScene + 1) / scenes.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update auto-play button
+            autoBtn.innerHTML = isAutoPlaying ?
+                '<i class="fas fa-pause"></i> Pause' :
+                '<i class="fas fa-play"></i> Auto-Story';
+
+            // If last scene, trigger the GIF surprise
+            if (currentScene === scenes.length - 1) {
+                setTimeout(showGifSurprise, 2000); // Show after 2 seconds
+            }
+        }
+
+        // === GIF SURPRISE FUNCTION (100% Mobile Compatible) ===
+        function showGifSurprise() {
+            console.log("Showing GIF surprise - guaranteed mobile play");
+
+            // Show the overlay
+            gifOverlay.style.display = 'flex';
+            setTimeout(() => {
+                gifOverlay.style.opacity = '1';
+                gifContainer.style.transform = 'scale(1)';
+            }, 10);
+
+            // The GIF will start playing AUTOMATICALLY on all devices
+            // No special handling needed for GIFs vs. videos
+        }
+
+        function hideGifSurprise() {
+            gifOverlay.style.opacity = '0';
+            gifContainer.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                gifOverlay.style.display = 'none';
+            }, 600);
+        }
+
+        // === EVENT LISTENERS FOR NAVIGATION ===
+        nextBtn.addEventListener('click', function() {
+            if (currentScene < scenes.length - 1) {
+                currentScene++;
+                updateScene();
+            }
+        });
+
+        prevBtn.addEventListener('click', function() {
+            if (currentScene > 0) {
+                currentScene--;
+                updateScene();
+            }
+        });
+
+        autoBtn.addEventListener('click', function() {
+            if (isAutoPlaying) {
+                clearInterval(autoPlayInterval);
+                isAutoPlaying = false;
+            } else {
+                isAutoPlaying = true;
+                if (currentScene === scenes.length - 1) currentScene = 0;
+                autoPlayInterval = setInterval(() => {
+                    if (currentScene < scenes.length - 1) {
+                        currentScene++;
+                        updateScene();
+                    } else {
+                        clearInterval(autoPlayInterval);
+                        isAutoPlaying = false;
+                        updateScene();
+                    }
+                }, 3500); // Change scene every 3.5 seconds
+            }
+            updateScene();
+        });
+
+        // Close GIF overlay
+        closeGifBtn.addEventListener('click', hideGifSurprise);
+        gifOverlay.addEventListener('click', function(e) {
+            if (e.target === gifOverlay) hideGifSurprise();
+        });
+
+        // === TOUCH SWIPE SUPPORT FOR MOBILE ===
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const storyCard = document.querySelector('.story-card');
+        storyCard.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        storyCard.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipeGesture();
+        }, { passive: true });
+
+        function handleSwipeGesture() {
+            const swipeThreshold = 60; // Minimum swipe distance
+
+            if (touchEndX < touchStartX - swipeThreshold) {
+                // Swipe LEFT - Next scene
+                if (currentScene < scenes.length - 1) {
+                    if (isAutoPlaying) {
+                        clearInterval(autoPlayInterval);
+                        isAutoPlaying = false;
+                        updateScene();
+                    }
+                    currentScene++;
+                    updateScene();
+                }
+            }
+
+            if (touchEndX > touchStartX + swipeThreshold) {
+                // Swipe RIGHT - Previous scene
+                if (currentScene > 0) {
+                    if (isAutoPlaying) {
+                        clearInterval(autoPlayInterval);
+                        isAutoPlaying = false;
+                        updateScene();
+                    }
+                    currentScene--;
+                    updateScene();
+                }
+            }
+        }
+
+        // === SCENE INDICATOR CLICKS ===
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', function() {
+                if (isAutoPlaying) {
+                    clearInterval(autoPlayInterval);
+                    isAutoPlaying = false;
+                }
+                currentScene = index;
+                updateScene();
+            });
+        });
+
+        // === INITIALIZE ===
+        updateScene();
+
+        // === OPTIONAL: Preload the GIF for smoother experience ===
+        window.addEventListener('load', function() {
+            console.log("Preloading GIF for instant play...");
+            // Creating an image object to preload
+            const preloadImg = new Image();
+            preloadImg.src = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif";
+        });
+    </script>
+</body>
+</html>
